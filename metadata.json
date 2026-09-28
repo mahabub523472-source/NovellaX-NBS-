@@ -1,0 +1,6 @@
+{
+  "name": "NovellaX NBS - Bengali Story & Novel Platform",
+  "description": "Premium Bengali story and novel reading platform founded by Mahbub Alam. Explore romantic, thriller, mystery, and emotional Bengali novels.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
