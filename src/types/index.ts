@@ -32,6 +32,7 @@ export interface Story {
   coverImage: string;
   category: StoryCategory;
   author: string;
+  authorImage?: string;
   status: 'চলমান' | 'সম্পূর্ণ';
   featured: boolean;
   popular: boolean;
@@ -56,6 +57,23 @@ export interface ReaderSettings {
   theme: 'light' | 'sepia' | 'dark';
   fontFamily: 'hind' | 'noto' | 'serif';
   lineHeight: 'normal' | 'relaxed' | 'loose';
+}
+
+export interface ContactInfo {
+  tiktok: string;
+  instagram: string;
+  facebook: string;
+  email: string;
+  whatsapp?: string;
+}
+
+export interface UserAccount {
+  id: string;
+  name: string;
+  avatar: string;
+  createdAt: string;
+  email?: string;
+  bio?: string;
 }
 
 export type NavigationPage =

@@ -3,10 +3,13 @@ import { StoryProvider, useStory } from './context/StoryContext';
 import { Header } from './components/Header';
 import { SideDrawer } from './components/SideDrawer';
 import { SearchModal } from './components/SearchModal';
+import { AuthModal } from './components/AuthModal';
 import { Footer } from './components/Footer';
+import { MobileBottomNav } from './components/MobileBottomNav';
 
 // Pages
 import { HomePage } from './pages/HomePage';
+import { StoriesCatalogPage } from './pages/StoriesCatalogPage';
 import { StoryDetailsPage } from './pages/StoryDetailsPage';
 import { ReaderPage } from './pages/ReaderPage';
 import { WriterPage } from './pages/WriterPage';
@@ -23,7 +26,8 @@ const AppContent: React.FC = () => {
     currentStorySlug,
     currentChapterNumber,
     navigateTo,
-    getStoryBySlug,
+    setIsSearchOpen,
+    setIsAuthModalOpen,
   } = useStory();
 
   // Handle URL path on initial load & popstate
@@ -32,8 +36,39 @@ const AppContent: React.FC = () => {
       const path = window.location.pathname.toLowerCase();
       const hash = window.location.hash.toLowerCase();
 
+      // Secret Admin URL route: /adminsahid09
       if (path === '/adminsahid09' || hash === '#/adminsahid09' || hash === '#adminsahid09') {
         navigateTo('admin');
+        return;
+      }
+
+      if (path === '/stories' || hash === '#stories' || hash === '#/stories') {
+        navigateTo('latest');
+        return;
+      }
+
+      if (path === '/search' || hash === '#search' || hash === '#/search') {
+        setIsSearchOpen(true);
+        return;
+      }
+
+      if (path === '/library' || hash === '#library' || hash === '#/library') {
+        navigateTo('bookmarks');
+        return;
+      }
+
+      if (path === '/profile' || hash === '#profile' || hash === '#/profile') {
+        setIsAuthModalOpen(true);
+        return;
+      }
+
+      if (path === '/latest' || hash === '#latest' || hash === '#/latest') {
+        navigateTo('latest');
+        return;
+      }
+
+      if (path === '/popular' || hash === '#popular' || hash === '#/popular') {
+        navigateTo('popular');
         return;
       }
 
@@ -52,8 +87,13 @@ const AppContent: React.FC = () => {
         return;
       }
 
-      if (path === '/categories' || hash === '#categories') {
+      if (path === '/categories' || hash === '#categories' || hash === '#/categories') {
         navigateTo('categories');
+        return;
+      }
+
+      if (path === '/bookmarks' || hash === '#bookmarks' || hash === '#/bookmarks') {
+        navigateTo('bookmarks');
         return;
       }
 
@@ -73,11 +113,11 @@ const AppContent: React.FC = () => {
     handleUrlRoute();
     window.addEventListener('popstate', handleUrlRoute);
     return () => window.removeEventListener('popstate', handleUrlRoute);
-  }, []);
+  }, [navigateTo]);
 
-  // Handle scroll to top on state transitions
+  // Handle scroll to top on every navigation state transition
   useEffect(() => {
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [currentPage, currentStorySlug, currentChapterNumber]);
 
   const renderCurrentPage = () => {
@@ -87,8 +127,9 @@ const AppContent: React.FC = () => {
       case 'categories':
         return <CategoriesPage />;
       case 'latest':
+        return <StoriesCatalogPage mode="latest" />;
       case 'popular':
-        return <HomePage />;
+        return <StoriesCatalogPage mode="popular" />;
       case 'writer':
         return <WriterPage />;
       case 'rules':
@@ -121,21 +162,28 @@ const AppContent: React.FC = () => {
   };
 
   const isReadingView = currentPage === 'reading';
+  const isAdminView = currentPage === 'admin';
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FFFFFF] text-[#111827] font-sans selection:bg-blue-100 selection:text-blue-900">
-      {/* Hide standard header on distraction-free reader page */}
-      {!isReadingView && <Header />}
+      {/* Hide standard public header on reading view and on secret admin panel */}
+      {!isReadingView && !isAdminView && <Header />}
 
-      {/* Side Drawer and Search Modals */}
-      <SideDrawer />
-      <SearchModal />
+      {/* Side Drawer and Search Modals (Hidden on admin) */}
+      {!isAdminView && <SideDrawer />}
+      {!isAdminView && <SearchModal />}
+      {!isAdminView && <AuthModal />}
 
       {/* Main Page Canvas */}
-      <main className="flex-1">{renderCurrentPage()}</main>
+      <main className={`flex-1 ${!isReadingView && !isAdminView ? 'pb-24 md:pb-0' : ''}`}>
+        {renderCurrentPage()}
+      </main>
 
-      {/* Footer (Hidden on reading view for optimal focus) */}
-      {!isReadingView && <Footer />}
+      {/* Footer (Hidden on reading view and on admin panel) */}
+      {!isReadingView && !isAdminView && <Footer />}
+
+      {/* Premium Animated Mobile Bottom Navigation (Hidden on reading view & admin) */}
+      {!isReadingView && !isAdminView && <MobileBottomNav />}
     </div>
   );
 };

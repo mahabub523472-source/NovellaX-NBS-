@@ -115,7 +115,7 @@ export const StoryDetailsPage: React.FC<StoryDetailsPageProps> = ({ slug }) => {
             {/* Author Byline */}
             <div className="flex items-center gap-3 pt-1">
               <img
-                src={WRITER_IMAGE}
+                src={story.authorImage || WRITER_IMAGE}
                 alt={story.author}
                 className="w-9 h-9 rounded-full object-cover ring-1 ring-blue-200"
                 referrerPolicy="no-referrer"

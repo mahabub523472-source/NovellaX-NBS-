@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Story, Chapter, StoryCategory, NavigationPage, ReaderSettings } from '../types';
+import { Story, Chapter, StoryCategory, NavigationPage, ReaderSettings, ContactInfo, UserAccount } from '../types';
 import { INITIAL_STORIES } from '../data/initialData';
+import { INITIAL_USERS } from '../data/avatars';
 
 interface StoryContextType {
   stories: Story[];
@@ -15,6 +16,18 @@ interface StoryContextType {
   bookmarkedStoryIds: string[];
   readerSettings: ReaderSettings;
   readingProgress: Record<string, number>; // storyId -> last read chapter number
+  contactInfo: ContactInfo;
+  
+  // User Account System
+  currentUser: UserAccount | null;
+  registeredUsers: UserAccount[];
+  isAuthModalOpen: boolean;
+  setIsAuthModalOpen: (open: boolean) => void;
+  registerUser: (name: string, avatar: string, email?: string, bio?: string) => UserAccount;
+  loginUser: (userId: string) => boolean;
+  logoutUser: () => void;
+  updateUserProfile: (data: Partial<UserAccount>) => void;
+  deleteUserAccount: (userId: string) => void;
   
   // Navigation & Page Setters
   navigateTo: (page: NavigationPage, storySlug?: string, chapterNumber?: number) => void;
@@ -38,6 +51,7 @@ interface StoryContextType {
   addChapter: (storyId: string, chapter: Omit<Chapter, 'id' | 'storyId' | 'publishedAt'>) => void;
   updateChapter: (storyId: string, chapterId: string, chapter: Partial<Chapter>) => void;
   deleteChapter: (storyId: string, chapterId: string) => void;
+  updateContactInfo: (info: Partial<ContactInfo>) => void;
   resetToDefaults: () => void;
   
   // Helpers
@@ -119,6 +133,141 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return false;
     }
   });
+
+  // 5. Contact Information State
+  const LOCAL_STORAGE_KEY_CONTACT = 'novellax_nbs_contact_v1';
+  const DEFAULT_CONTACT_INFO: ContactInfo = {
+    tiktok: 'https://www.tiktok.com/@novellaxnbs',
+    instagram: 'https://www.instagram.com/novellaxnbs',
+    facebook: 'https://www.facebook.com/novellaxnbs',
+    email: 'contact@novellaxnbs.app',
+    whatsapp: 'https://wa.me/8801700000000',
+  };
+
+  const [contactInfo, setContactInfo] = useState<ContactInfo>(() => {
+    try {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY_CONTACT);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          ...DEFAULT_CONTACT_INFO,
+          ...parsed,
+          whatsapp: parsed.whatsapp || DEFAULT_CONTACT_INFO.whatsapp,
+        };
+      }
+    } catch {
+      // fallback
+    }
+    return DEFAULT_CONTACT_INFO;
+  });
+
+  const updateContactInfo = (newInfo: Partial<ContactInfo>) => {
+    setContactInfo(prev => {
+      const updated = { ...prev, ...newInfo };
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY_CONTACT, JSON.stringify(updated));
+      } catch {
+        // fallback
+      }
+      return updated;
+    });
+  };
+
+  // 6. User Account State
+  const LOCAL_STORAGE_KEY_REGISTERED_USERS = 'novellax_nbs_registered_users_v1';
+  const LOCAL_STORAGE_KEY_CURRENT_USER = 'novellax_nbs_current_user_v1';
+
+  const [registeredUsers, setRegisteredUsers] = useState<UserAccount[]>(() => {
+    try {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY_REGISTERED_USERS);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {
+      // fallback
+    }
+    return INITIAL_USERS;
+  });
+
+  const [currentUser, setCurrentUser] = useState<UserAccount | null>(() => {
+    try {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY_CURRENT_USER);
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // fallback
+    }
+    return null;
+  });
+
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // Save registered users
+  useEffect(() => {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY_REGISTERED_USERS, JSON.stringify(registeredUsers));
+    } catch {
+      // Ignore
+    }
+  }, [registeredUsers]);
+
+  // Save current user
+  useEffect(() => {
+    try {
+      if (currentUser) {
+        localStorage.setItem(LOCAL_STORAGE_KEY_CURRENT_USER, JSON.stringify(currentUser));
+      } else {
+        localStorage.removeItem(LOCAL_STORAGE_KEY_CURRENT_USER);
+      }
+    } catch {
+      // Ignore
+    }
+  }, [currentUser]);
+
+  const registerUser = (name: string, avatar: string, email?: string, bio?: string): UserAccount => {
+    // Rule: A reader can only create one account
+    if (currentUser) {
+      return currentUser;
+    }
+
+    const newUser: UserAccount = {
+      id: `user-${Date.now()}`,
+      name: name.trim(),
+      avatar: avatar || INITIAL_USERS[0].avatar,
+      email: email?.trim(),
+      bio: bio?.trim(),
+      createdAt: new Date().toLocaleDateString('bn-BD', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }),
+    };
+    setRegisteredUsers(prev => [newUser, ...prev]);
+    setCurrentUser(newUser);
+    return newUser;
+  };
+
+  const loginUser = (userId: string): boolean => {
+    // Rule: Cannot log into any other reader's account
+    if (currentUser && currentUser.id === userId) {
+      return true;
+    }
+    return false;
+  };
+
+  const logoutUser = () => {
+    // Rule: Account cannot be logged out or switched to bypass single account rule
+  };
+
+  const updateUserProfile = (_data: Partial<UserAccount>) => {
+    // Rule: Account cannot be edited once created
+    return;
+  };
+
+  const deleteUserAccount = (_userId: string) => {
+    // Rule: Account cannot be deleted or re-created
+    return;
+  };
 
   // Save stories to localStorage
   useEffect(() => {
@@ -225,13 +374,7 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Admin Auth functions
   const loginAdmin = (pass: string) => {
     const trimmed = pass.trim();
-    if (
-      trimmed === 'adminsahid09' ||
-      trimmed === 'sahid09' ||
-      trimmed === 'admin123' ||
-      trimmed === 'novella2026' ||
-      trimmed === 'mahbub'
-    ) {
+    if (trimmed === 'Sahid_Ahmed_009') {
       setIsAdminLoggedIn(true);
       try {
         localStorage.setItem(LOCAL_STORAGE_KEY_ADMIN, 'true');
@@ -388,6 +531,17 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         addChapter,
         updateChapter,
         deleteChapter,
+        contactInfo,
+        updateContactInfo,
+        currentUser,
+        registeredUsers,
+        isAuthModalOpen,
+        setIsAuthModalOpen,
+        registerUser,
+        loginUser,
+        logoutUser,
+        updateUserProfile,
+        deleteUserAccount,
         resetToDefaults,
         getStoryBySlug,
         incrementStoryRead,

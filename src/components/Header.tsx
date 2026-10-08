@@ -1,6 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Menu, Bookmark, BookOpen, ShieldCheck } from 'lucide-react';
+import {
+  Search,
+  Menu,
+  Bookmark,
+  BookOpen,
+  ShieldCheck,
+  Sparkles,
+  Compass,
+  Feather,
+  TrendingUp,
+  Flame,
+  Layers,
+  Phone,
+  User,
+} from 'lucide-react';
 import { useStory } from '../context/StoryContext';
+import { BrandLogo } from './BrandLogo';
 
 export const Header: React.FC = () => {
   const {
@@ -10,133 +25,215 @@ export const Header: React.FC = () => {
     setIsMenuOpen,
     bookmarkedStoryIds,
     isAdminLoggedIn,
+    currentUser,
+    setIsAuthModalOpen,
   } = useStory();
 
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      setIsScrolled(window.scrollY > 15);
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Keyboard shortcut listener for Command+K / Ctrl+K
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [setIsSearchOpen]);
+
+  const navItems = [
+    { id: 'home', label: 'হোম', subLabel: 'Home', icon: BookOpen },
+    { id: 'categories', label: 'ক্যাটাগরি', subLabel: 'Genres', icon: Layers },
+    { id: 'latest', label: 'নতুন গল্প', subLabel: 'Latest', icon: Sparkles },
+    { id: 'popular', label: 'জনপ্রিয়', subLabel: 'Popular', icon: Flame },
+    { id: 'writer', label: 'লেখক পরিচিতি', subLabel: 'Author', icon: Feather },
+  ];
+
   return (
-    <header
-      className={`sticky top-0 z-40 w-full transition-all duration-200 ${
-        isScrolled
-          ? 'bg-white/95 backdrop-blur-md shadow-xs border-b border-gray-100'
-          : 'bg-white border-b border-gray-100'
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between">
-        {/* Zone 1: Brand Wordmark */}
-        <button
-          onClick={() => navigateTo('home')}
-          className="flex items-center gap-2.5 text-left group cursor-pointer focus:outline-hidden"
-          aria-label="NovellaX NBS Home"
-        >
-          <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-xs group-hover:bg-blue-700 transition-colors">
-            <BookOpen className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-xl sm:text-2xl font-bold tracking-tight text-gray-900 font-serif block leading-none">
-              NovellaX NBS
+    <header className="sticky top-0 z-40 w-full transition-all duration-300">
+      {/* 1. Top Luxury Utility Micro-Bar */}
+      <div className="bg-slate-900 text-slate-300 border-b border-slate-800/80 text-[11px] py-1.5 px-4 sm:px-6 lg:px-8 hidden md:block">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <span className="inline-flex items-center gap-1.5 text-blue-400 font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>বাংলা সাহিত্যের প্রিমিয়াম ডিজিটাল প্ল্যাটফর্ম</span>
+            </span>
+            <span className="text-slate-600">|</span>
+            <span className="text-slate-400 font-serif">
+              "গল্পের পাতায়, অনুভূতির ছোঁয়ায়" — NovellaX NBS
             </span>
           </div>
-        </button>
 
-        {/* Zone 2: Navigation Links (Desktop) */}
-        <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-gray-600">
+          <div className="flex items-center gap-4 text-slate-400">
+            <button
+              onClick={() => navigateTo('rules')}
+              className="hover:text-blue-300 transition-colors cursor-pointer"
+            >
+              নীতিমালা
+            </button>
+            <span className="text-slate-700">·</span>
+            <button
+              onClick={() => navigateTo('contact')}
+              className="hover:text-blue-300 transition-colors cursor-pointer flex items-center gap-1"
+            >
+              <Phone className="w-3 h-3 text-blue-400" />
+              <span>যোগাযোগ</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Main Glassmorphic Header */}
+      <div
+        className={`w-full transition-all duration-300 ${
+          isScrolled
+            ? 'bg-white/95 backdrop-blur-xl shadow-lg shadow-blue-950/5 border-b border-slate-200/80 py-2 sm:py-2.5'
+            : 'bg-white/90 backdrop-blur-md border-b border-slate-100 py-3 sm:py-3.5'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
+          {/* Brand Logo & Wordmark */}
           <button
             onClick={() => navigateTo('home')}
-            className={`cursor-pointer transition-colors hover:text-blue-600 ${
-              currentPage === 'home' ? 'text-blue-600 font-semibold' : ''
-            }`}
+            className="flex items-center text-left cursor-pointer focus:outline-hidden group"
+            aria-label="NovellaX NBS Home"
           >
-            Home
-          </button>
-          <button
-            onClick={() => navigateTo('categories')}
-            className={`cursor-pointer transition-colors hover:text-blue-600 ${
-              currentPage === 'categories' ? 'text-blue-600 font-semibold' : ''
-            }`}
-          >
-            Categories
-          </button>
-          <button
-            onClick={() => navigateTo('latest')}
-            className={`cursor-pointer transition-colors hover:text-blue-600 ${
-              currentPage === 'latest' ? 'text-blue-600 font-semibold' : ''
-            }`}
-          >
-            Latest Stories
-          </button>
-          <button
-            onClick={() => navigateTo('popular')}
-            className={`cursor-pointer transition-colors hover:text-blue-600 ${
-              currentPage === 'popular' ? 'text-blue-600 font-semibold' : ''
-            }`}
-          >
-            Popular
-          </button>
-          <button
-            onClick={() => navigateTo('writer')}
-            className={`cursor-pointer transition-colors hover:text-blue-600 ${
-              currentPage === 'writer' ? 'text-blue-600 font-semibold' : ''
-            }`}
-          >
-            লেখক পরিচিতি
-          </button>
-        </nav>
-
-        {/* Zone 3: Actions (Search, Bookmarks, Menu) */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Bookmarks Quick Access */}
-          <button
-            onClick={() => navigateTo('bookmarks')}
-            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors relative cursor-pointer"
-            aria-label="Bookmarks"
-            title="পছন্দের গল্পসমূহ"
-          >
-            <Bookmark className="w-5 h-5" />
-            {bookmarkedStoryIds.length > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-600 rounded-full ring-2 ring-white" />
-            )}
+            <BrandLogo size="md" />
           </button>
 
-          {/* Search Button */}
-          <button
-            onClick={() => setIsSearchOpen(true)}
-            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
-            aria-label="Search stories"
-            title="গল্প খুঁজুন"
-          >
-            <Search className="w-5 h-5" />
-            <span className="hidden lg:inline text-xs text-gray-500 font-medium ml-1">খুঁজুন</span>
-          </button>
+          {/* Desktop Navigation Links */}
+          <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
+            {navItems.map(item => {
+              const isActive = currentPage === item.id;
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => navigateTo(item.id as any)}
+                  className={`group relative px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer flex items-center gap-2 ${
+                    isActive
+                      ? 'text-blue-600 bg-blue-50/90 shadow-xs shadow-blue-500/5'
+                      : 'text-slate-600 hover:text-blue-600 hover:bg-slate-50'
+                  }`}
+                >
+                  <Icon
+                    className={`w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110 ${
+                      isActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-blue-500'
+                    }`}
+                  />
+                  <span>{item.label}</span>
 
-          {/* Admin Indicator if Logged In */}
-          {isAdminLoggedIn && (
+                  {/* Active Indicator Underline Bar */}
+                  {isActive && (
+                    <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full" />
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* Header Action Controls */}
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            {/* Search Pill Trigger */}
             <button
-              onClick={() => navigateTo('admin')}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+              onClick={() => setIsSearchOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-slate-100/90 text-slate-600 hover:text-slate-900 rounded-xl border border-slate-200/80 transition-all duration-200 cursor-pointer text-xs group shadow-2xs"
+              aria-label="গল্প অনুসন্ধান করুন"
+              title="গল্প অনুসন্ধান (Ctrl+K)"
             >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Admin</span>
+              <Search className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
+              <span className="hidden sm:inline font-medium text-slate-500 group-hover:text-slate-700">
+                গল্প খুঁজুন...
+              </span>
+              <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-white border border-slate-200 rounded text-slate-400 group-hover:text-slate-600 shadow-2xs">
+                ⌘K
+              </kbd>
             </button>
-          )}
 
-          {/* Menu Drawer Toggle Button */}
-          <button
-            onClick={() => setIsMenuOpen(true)}
-            className="p-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
-            aria-label="Open menu"
-          >
-            <Menu className="w-6 h-6" />
-            <span className="hidden sm:inline text-xs font-semibold text-gray-700">Menu</span>
-          </button>
+            {/* Bookmarks Quick Link */}
+            <button
+              onClick={() => navigateTo('bookmarks')}
+              className={`p-2 sm:px-3 sm:py-2 rounded-xl border transition-all duration-200 relative cursor-pointer flex items-center gap-1.5 text-xs font-semibold ${
+                currentPage === 'bookmarks'
+                  ? 'bg-blue-50 border-blue-200 text-blue-600'
+                  : 'bg-white hover:bg-slate-50 border-slate-200/80 text-slate-700 hover:text-blue-600'
+              }`}
+              aria-label="বুকমার্ক ও সংরক্ষিত গল্পসমূহ"
+              title="সংরক্ষিত গল্প"
+            >
+              <Bookmark className="w-4 h-4 text-blue-600" />
+              <span className="hidden md:inline">সংরক্ষিত</span>
+              {bookmarkedStoryIds.length > 0 && (
+                <span className="inline-flex items-center justify-center min-w-4.5 h-4.5 px-1 text-[10px] font-bold text-white bg-blue-600 rounded-full shadow-xs">
+                  {bookmarkedStoryIds.length}
+                </span>
+              )}
+            </button>
+
+            {/* Reader Account Button */}
+            {currentUser ? (
+              <button
+                onClick={() => setIsAuthModalOpen(true)}
+                className="flex items-center gap-2 pl-1.5 pr-2.5 py-1 sm:py-1.5 rounded-xl bg-blue-50/80 hover:bg-blue-100/80 border border-blue-200/80 transition-all cursor-pointer shadow-2xs text-xs group"
+                title={`${currentUser.name} - প্রোফাইল ও অ্যাকাউন্ট`}
+              >
+                <div className="relative">
+                  <img
+                    src={currentUser.avatar}
+                    alt={currentUser.name}
+                    className="w-7 h-7 rounded-full object-cover ring-1.5 ring-blue-500 shrink-0"
+                    referrerPolicy="no-referrer"
+                  />
+                  <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white" />
+                </div>
+                <div className="hidden sm:flex flex-col text-left leading-tight">
+                  <span className="font-bold text-slate-900 line-clamp-1 max-w-[85px] font-serif">
+                    {currentUser.name}
+                  </span>
+                  <span className="text-[9px] text-blue-600 font-medium">পাঠক প্রোফাইল</span>
+                </div>
+              </button>
+            ) : (
+              <button
+                onClick={() => setIsAuthModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 text-blue-700 rounded-xl border border-blue-200/80 text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                title="পাঠক অ্যাকাউন্ট খুলুন"
+              >
+                <User className="w-3.5 h-3.5 text-blue-600" />
+                <span className="hidden sm:inline">অ্যাকাউন্ট</span>
+              </button>
+            )}
+
+            {/* Primary Action CTA: Explore / Read Stories */}
+            <button
+              onClick={() => navigateTo('latest')}
+              className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white text-xs font-bold shadow-md shadow-blue-600/20 hover:shadow-lg hover:shadow-blue-600/30 transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer"
+            >
+              <Compass className="w-3.5 h-3.5" />
+              <span>গল্পসমগ্র</span>
+            </button>
+
+            {/* Mobile Menu Drawer Toggle Button */}
+            <button
+              onClick={() => setIsMenuOpen(true)}
+              className="p-2 sm:px-2.5 sm:py-2 text-slate-700 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 rounded-xl border border-slate-200/70 transition-all cursor-pointer flex items-center gap-1"
+              aria-label="মেনু খুলুন"
+            >
+              <Menu className="w-5 h-5 text-slate-800" />
+              <span className="hidden sm:inline text-xs font-bold text-slate-700">মেনু</span>
+            </button>
+          </div>
         </div>
       </div>
     </header>

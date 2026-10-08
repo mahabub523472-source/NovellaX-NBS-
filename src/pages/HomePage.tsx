@@ -72,10 +72,7 @@ export const HomePage: React.FC = () => {
                 </button>
 
                 <button
-                  onClick={() => {
-                    const el = document.getElementById('all-stories-section');
-                    el?.scrollIntoView({ behavior: 'smooth' });
-                  }}
+                  onClick={() => navigateTo('latest')}
                   className="px-6 py-3 rounded-xl bg-white hover:bg-gray-50 text-gray-800 font-medium text-sm border border-gray-200 hover:border-gray-300 transition-all duration-200 shadow-xs flex items-center gap-2 cursor-pointer"
                 >
                   <span>সব গল্প দেখুন</span>

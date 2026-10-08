@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
-import { Mail, Facebook, Instagram, Send, CheckCircle2, MessageSquare, Sparkles } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Mail, Facebook, Instagram, Send, CheckCircle2, MessageSquare, Sparkles, ExternalLink, MessageCircle } from 'lucide-react';
+import { useStory } from '../context/StoryContext';
+import { WhatsAppIcon, formatWhatsAppUrl } from '../components/WhatsAppIcon';
+import { Interactive3DContactCard } from '../components/Interactive3DContactCard';
 
 export const ContactPage: React.FC = () => {
+  const { contactInfo } = useStory();
+  const formSectionRef = useRef<HTMLDivElement>(null);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -14,35 +19,78 @@ export const ContactPage: React.FC = () => {
     e.preventDefault();
     if (!formData.name || !formData.message) return;
     setFormSubmitted(true);
+
+    // If an email is configured, open mailto link with pre-filled content
+    if (contactInfo.email) {
+      const subject = encodeURIComponent(formData.subject || `NovellaX NBS বার্তা: ${formData.name}`);
+      const body = encodeURIComponent(
+        `প্রেরক: ${formData.name}\nইমেইল: ${formData.email}\n\nবার্তা:\n${formData.message}`
+      );
+      window.location.href = `mailto:${contactInfo.email}?subject=${subject}&body=${body}`;
+    }
+
     setFormData({ name: '', email: '', subject: '', message: '' });
+  };
+
+  const handleSendViaWhatsApp = () => {
+    if (!formData.name || !formData.message) {
+      alert('দয়া করে আপনার নাম ও বার্তা লিখুন।');
+      return;
+    }
+    const fullMsg = `হ্যালো মাহবুব ভাই / NovellaX NBS,\nনাম: ${formData.name}\nবিষয়: ${formData.subject || 'সাধারণ যোগাযোগ'}\n\nবার্তা: ${formData.message}`;
+    const url = formatWhatsAppUrl(contactInfo.whatsapp, fullMsg);
+    if (url && url !== '#') {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      alert('হোয়াটসঅ্যাপ নম্বর এখনও অ্যাডমিন প্যানেল থেকে সেট করা হয়নি।');
+    }
   };
 
   const contactChannels = [
     {
-      name: 'TikTok',
-      id: 'tiktok',
-      badge: 'ভিডিও ও শর্টস',
-      description: 'গল্পের আকর্ষণীয় অডিও-ভিজ্যুয়াল ট্রেলার ও আপডেট দেখতে ফলো করুন।',
+      name: 'WhatsApp',
+      id: 'whatsapp',
+      badge: 'ইনস্ট্যান্ট চ্যাট',
+      description: 'গল্প সম্পর্কে তাৎক্ষণিক মতামত, ব্যক্তিগত বার্তা বা সরাসরি আলোচনার জন্য হোয়াটসঅ্যাপে চ্যাট করুন।',
       icon: (
-        <div className="w-10 h-10 rounded-xl bg-gray-900 text-white flex items-center justify-center font-bold font-serif text-sm">
-          TT
+        <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-xs">
+          <WhatsAppIcon className="w-5 h-5 fill-current" />
         </div>
       ),
-      actionText: 'যোগাযোগ করুন →',
-      linkUrl: '#',
+      actionText: 'WhatsApp এ চ্যাট করুন →',
+      linkUrl: formatWhatsAppUrl(contactInfo.whatsapp),
+      isExternal: true,
+      color: 'emerald',
     },
     {
       name: 'Facebook',
       id: 'facebook',
       badge: 'অফিশিয়াল পেজ',
-      description: 'গল্পের নতুন আপডেট, পাঠকদের রিভিউ ও সরাসরি মেসেজ পাঠানোর মাধ্যম।',
+      description: 'গল্পের নতুন আপডেট, পাঠকদের রিভিউ ও সরাসরি মেসেজ পাঠানোর প্রধান মাধ্যম।',
       icon: (
-        <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center">
+        <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs">
           <Facebook className="w-5 h-5" />
         </div>
       ),
-      actionText: 'যোগাযোগ করুন →',
-      linkUrl: '#',
+      actionText: 'Facebook এ বার্তা দিন →',
+      linkUrl: contactInfo.facebook || '#',
+      isExternal: true,
+      color: 'blue',
+    },
+    {
+      name: 'TikTok',
+      id: 'tiktok',
+      badge: 'ভিডিও ও শর্টস',
+      description: 'গল্পের আকর্ষণীয় অডিও-ভিজ্যুয়াল ট্রেলার, রিলস ও নতুন আপডেট দেখতে ফলো করুন।',
+      icon: (
+        <div className="w-10 h-10 rounded-xl bg-gray-900 text-white flex items-center justify-center font-bold font-serif text-sm shadow-xs">
+          TT
+        </div>
+      ),
+      actionText: 'TikTok এ ফলো করুন →',
+      linkUrl: contactInfo.tiktok || '#',
+      isExternal: true,
+      color: 'gray',
     },
     {
       name: 'Instagram',
@@ -50,12 +98,14 @@ export const ContactPage: React.FC = () => {
       badge: 'ফটো ও কোটস',
       description: 'গল্পের সেরা কোটেশন, বুক কভার আর্ট ও সাহিত্য আড্ডায় যুক্ত হন।',
       icon: (
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white flex items-center justify-center">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white flex items-center justify-center shadow-xs">
           <Instagram className="w-5 h-5" />
         </div>
       ),
-      actionText: 'যোগাযোগ করুন →',
-      linkUrl: '#',
+      actionText: 'Instagram এ যুক্ত হন →',
+      linkUrl: contactInfo.instagram || '#',
+      isExternal: true,
+      color: 'rose',
     },
     {
       name: 'Email',
@@ -63,12 +113,14 @@ export const ContactPage: React.FC = () => {
       badge: 'অফিসিয়াল যোগাযোগ',
       description: 'যেকোনো ব্যক্তিগত বার্তা, পরামর্শ বা সহযোগিতার জন্য সরাসরি ইমেইল করুন।',
       icon: (
-        <div className="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center">
+        <div className="w-10 h-10 rounded-xl bg-slate-800 text-white flex items-center justify-center shadow-xs">
           <Mail className="w-5 h-5" />
         </div>
       ),
-      actionText: 'যোগাযোগ করুন →',
-      linkUrl: 'mailto:contact@novellaxnbs.app',
+      actionText: 'সরাসরি ইমেইল পাঠান →',
+      linkUrl: contactInfo.email ? (contactInfo.email.startsWith('mailto:') ? contactInfo.email : `mailto:${contactInfo.email}`) : '#',
+      isExternal: false,
+      color: 'slate',
     },
   ];
 
@@ -88,8 +140,25 @@ export const ContactPage: React.FC = () => {
         </p>
       </div>
 
-      {/* 4 Premium Contact Channels */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+      {/* 3D Physical Interactive Floating Contact Card */}
+      <div>
+        <Interactive3DContactCard
+          onCtaClick={() => {
+            formSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }}
+          ctaText="বার্তা লেখার ফর্মে যান ↓"
+        />
+      </div>
+
+      {/* 5 Premium Contact Channels */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 font-serif">
+            যোগাযোগের মাধ্যমসমূহ
+          </h2>
+          <span className="text-xs text-gray-500 font-serif">৫টি সক্রিয় চ্যানেল</span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {contactChannels.map(channel => (
           <div
             key={channel.id}
@@ -111,23 +180,32 @@ export const ContactPage: React.FC = () => {
             <div className="pt-5 mt-4 border-t border-gray-100">
               <a
                 href={channel.linkUrl}
+                target={channel.isExternal && channel.linkUrl !== '#' ? '_blank' : undefined}
+                rel={channel.isExternal ? 'noopener noreferrer' : undefined}
                 onClick={e => {
-                  if (channel.linkUrl === '#') {
+                  if (channel.linkUrl === '#' || !channel.linkUrl) {
                     e.preventDefault();
-                    alert(`${channel.name} লিঙ্ক শীঘ্রই সংযুক্ত করা হবে।`);
+                    alert(`${channel.name} লিঙ্ক এখনও অ্যাডমিন প্যানেল থেকে সেট করা হয়নি।`);
                   }
                 }}
                 className="inline-flex items-center gap-2 text-xs font-semibold text-blue-600 group-hover:text-blue-800 transition-colors"
               >
                 <span>{channel.actionText}</span>
+                {channel.isExternal && channel.linkUrl !== '#' && (
+                  <ExternalLink className="w-3 h-3 text-blue-400 group-hover:text-blue-600" />
+                )}
               </a>
             </div>
           </div>
         ))}
+        </div>
       </div>
 
       {/* Interactive Message Sending Form */}
-      <div className="bg-white rounded-3xl border border-gray-200/80 p-6 sm:p-10 shadow-xs space-y-6">
+      <div
+        ref={formSectionRef}
+        className="bg-white rounded-3xl border border-gray-200/80 p-6 sm:p-10 shadow-xs space-y-6 scroll-mt-24"
+      >
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
             <MessageSquare className="w-5 h-5" />
@@ -210,13 +288,21 @@ export const ContactPage: React.FC = () => {
               />
             </div>
 
-            <div className="flex justify-end pt-2">
+            <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={handleSendViaWhatsApp}
+                className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs sm:text-sm transition-all flex items-center gap-2 cursor-pointer shadow-xs"
+              >
+                <WhatsAppIcon className="w-4 h-4 fill-current" />
+                <span>WhatsApp এ সরাসরি পাঠান</span>
+              </button>
               <button
                 type="submit"
                 className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs sm:text-sm transition-all flex items-center gap-2 cursor-pointer shadow-md"
               >
                 <Send className="w-4 h-4" />
-                <span>বার্তা পাঠান</span>
+                <span>ইমেইলে বার্তা পাঠান</span>
               </button>
             </div>
           </form>

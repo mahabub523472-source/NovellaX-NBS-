@@ -10,13 +10,18 @@ import {
   Maximize2,
   X,
   Feather,
+  Mail,
+  Compass,
+  Facebook,
+  Instagram,
+  ExternalLink,
 } from 'lucide-react';
 import { useStory } from '../context/StoryContext';
-import { StoryCard } from '../components/StoryCard';
 import { WRITER_IMAGE, WRITER_IMAGE_FALLBACK } from '../constants/assets';
+import { Interactive3DContactCard } from '../components/Interactive3DContactCard';
 
 export const WriterPage: React.FC = () => {
-  const { stories, navigateTo } = useStory();
+  const { stories, navigateTo, contactInfo } = useStory();
   const [imgError, setImgError] = useState(false);
   const [isZoomOpen, setIsZoomOpen] = useState(false);
 
@@ -155,40 +160,38 @@ export const WriterPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Signature Block */}
-        <div className="pt-4 border-t border-gray-200/80 flex items-center justify-between">
+        {/* Writer Direct 3D Interactive Social Contact Card */}
+        <div className="pt-6 border-t border-gray-200/80">
+          <Interactive3DContactCard />
+        </div>
+
+        {/* Signature & Interaction Block */}
+        <div className="pt-6 border-t border-gray-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <p className="text-xs text-gray-400">বিনীত,</p>
-            <p className="text-base font-bold text-gray-900 font-serif">মাহবুব আলম</p>
-            <p className="text-xs text-blue-600">NovellaX NBS</p>
+            <p className="text-xs text-gray-400">বিনীত ও শুভকামনায়,</p>
+            <p className="text-lg font-bold text-gray-900 font-serif">মাহবুব আলম</p>
+            <p className="text-xs text-blue-600 font-medium">প্রতিষ্ঠাতা ও গল্পকার — NovellaX NBS</p>
           </div>
-          <button
-            onClick={() => navigateTo('contact')}
-            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
-          >
-            <span>বার্তা পাঠান</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigateTo('latest')}
+              className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <Compass className="w-3.5 h-3.5 text-blue-600" />
+              <span>গল্পসমগ্র দেখুন</span>
+            </button>
+
+            <button
+              onClick={() => navigateTo('contact')}
+              className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+            >
+              <Mail className="w-3.5 h-3.5" />
+              <span>সরাসরি বার্তা পাঠান</span>
+            </button>
+          </div>
         </div>
       </div>
-
-      {/* 4. Stories by Mahbub Alam */}
-      <section className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 font-serif">
-            মাহবুব আলমের প্রকাশিত গল্প ও উপন্যাসসমূহ
-          </h2>
-          <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            সরাসরি ক্লিক করে পড়তে শুরু করুন
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {writerStories.map(story => (
-            <StoryCard key={story.id} story={story} />
-          ))}
-        </div>
-      </section>
 
       {/* Photo Fullscreen Zoom Lightbox */}
       {isZoomOpen && (
